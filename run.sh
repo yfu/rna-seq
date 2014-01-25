@@ -8,7 +8,7 @@
 #BSUB -o /home/yf60w/logs/%J.%I.out
 #BSUB -e /home/yf60w/logs/%J.%I.err
 
-while getopts "l:r:c:" OPTION
+while getopts "l:r:c:o:d" OPTION
 do
     case $OPTION in
 	l)
@@ -17,12 +17,27 @@ do
 	    right_full_path=$(readlink -f $OPTARG);;
 	c)
 	    cpu=$OPTARG;;
+	o)
+	    output_dir=$OPTARG;;
+	d)
+	    # If $dry_run==1, then run.sh will only output instead of executing
+	    # anything
+	    dry_run=1;;
     esac
 done
 
-if [ -z "$cpu" ]; then
+if [[ -z "$cpu" ]]; then
     cpu=8
 fi
+
+Run () {
+    if [[ "$dry_run" == 1 ]]; then
+        echo "$*"
+        return 0
+    fi
+    eval "$@"
+}
+
 # Find the longest common prefix of two filenames
 # prefix=$(echo -e "$left\n$right" | sed -e 'N;s/^\(.*\).*\n\1.*$/\1/')
 # prefix=${prefix%.*}
@@ -42,15 +57,29 @@ right_basename=$(basename $right_full_path)
 right_filename=${right_basename%.*}
 # echo $right_filename
 
-phred_score=$(phred_guesser.py < $left_full_path)
-if [[ $phred_score =~ 33 ]]; then
+# If no output dir (-o) is given, the dafault is using $PWD/left.right, 
+# since the user may not have write permissions on the dir containing the data.
+if [[ -z "$output_dir" ]]; then
+    output_dir=$PWD/$left_filename_$right_filename
+fi
+
+Run mkdir -p "$output_dir"
+
+phred=$(phred_guesser.py < "$left_full_path")
+phred="phred33\n"
+if [[ $phred =~ "phred33" ]]; then
     phred_option='--phred33'
 else
     phred_option='--phred64'
 fi
 
 # rRNAx = rRNA excluded
-command="bowtie2 -x ~/storage/PE_Pipeline/common_files/dm3/rRNA -1 $left_full_path -2 $right_full_path -q $phred_option --very-fast -k 1 --no-mixed --no-discordant --un-conc "$left_filename"."$right_filename".rRNAx.fq -S /dev/null -p $cpu"
-echo "I will run the following command $command"
-$command
+output_dir1=$output/rRNAx
+Run mkdir -p "$output_dir1"
+command1="bowtie2 -x ~/storage/PE_Pipeline/common_files/dm3/rRNA -1 $left_full_path -2 $right_full_path -q $phred_option --very-fast -k 1 --no-mixed --no-discordant --un-conc $output_dir1/"$left_filename"."$right_filename".rRNAx.fq -S /dev/null -p $cpu"
+echo "I will run the following command $command1"
+
+Run "$command1"
+
+# Mapping to the genome using STAR
 
