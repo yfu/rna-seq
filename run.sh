@@ -60,7 +60,7 @@ right_filename=${right_basename%.*}
 # If no output dir (-o) is given, the dafault is using $PWD/left.right, 
 # since the user may not have write permissions on the dir containing the data.
 if [[ -z "$output_dir" ]]; then
-    output_dir=$PWD/$left_filename_$right_filename
+    output_dir=$PWD/"$left_filename"_"$right_filename"
 fi
 
 Run mkdir -p "$output_dir"
