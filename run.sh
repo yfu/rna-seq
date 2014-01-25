@@ -79,11 +79,11 @@ fi
 # rRNAx = rRNA excluded
 output_dir1=$output_dir/rRNAx
 
-if [[ -z "$common_prefix" ]]; then do
+if [[ -z "$common_prefix" ]]; then
     output_rrnax=$output_dir1/"$left_filename"."$right_filename".rRNAx.fq
 else
     output_rrnax=$output_dir1/"$common_prefix".rRNAx.fq
-done;
+fi;
 
 
 Run mkdir -p "$output_dir1"
