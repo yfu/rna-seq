@@ -74,7 +74,7 @@ else
 fi
 
 # rRNAx = rRNA excluded
-output_dir1=$output/rRNAx
+output_dir1=$output_dir/rRNAx
 Run mkdir -p "$output_dir1"
 command1="bowtie2 -x ~/storage/PE_Pipeline/common_files/dm3/rRNA -1 $left_full_path -2 $right_full_path -q $phred_option --very-fast -k 1 --no-mixed --no-discordant --un-conc $output_dir1/"$left_filename"."$right_filename".rRNAx.fq -S /dev/null -p $cpu"
 echo "I will run the following command $command1"
