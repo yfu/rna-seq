@@ -8,7 +8,7 @@
 #BSUB -o /home/yf60w/logs/%J.%I.out
 #BSUB -e /home/yf60w/logs/%J.%I.err
 
-while getopts "l:r:c:o:d" OPTION
+while getopts "l:r:c:o:dp:" OPTION
 do
     case $OPTION in
 	l)
@@ -23,6 +23,9 @@ do
 	    # If $dry_run==1, then run.sh will only output instead of executing
 	    # anything
 	    dry_run=1;;
+	p)
+	    # In case the user would like to give a name for all the output files
+	    common_prefix=$OPTARG;;
     esac
 done
 
@@ -75,8 +78,16 @@ fi
 
 # rRNAx = rRNA excluded
 output_dir1=$output_dir/rRNAx
+
+if [[ -z "$common_prefix" ]]; then do
+    output_rrnax=$output_dir1/"$left_filename"."$right_filename".rRNAx.fq
+else
+    output_rrnax=$output_dir1/"$common_prefix".rRNAx.fq
+done;
+
+
 Run mkdir -p "$output_dir1"
-command1="bowtie2 -x ~/storage/PE_Pipeline/common_files/dm3/rRNA -1 $left_full_path -2 $right_full_path -q $phred_option --very-fast -k 1 --no-mixed --no-discordant --un-conc $output_dir1/"$left_filename"."$right_filename".rRNAx.fq -S /dev/null -p $cpu"
+command1="bowtie2 -x ~/storage/PE_Pipeline/common_files/dm3/rRNA -1 $left_full_path -2 $right_full_path -q $phred_option --very-fast -k 1 --no-mixed --no-discordant --un-conc $output_rrnax -S /dev/null -p $cpu"
 echo "I will run the following command $command1"
 
 Run "$command1"
